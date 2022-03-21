@@ -55,3 +55,53 @@ int occurance=1){
         return false;
 }
 
+template<typename key,typename info>
+bool sequence<key,info>::delete(const key& which,int occurance=1)
+{
+    node *before; //a node just before the current node
+    node *current;
+    int count=0; 
+    before=head;
+    current=head->next;
+    if(head->key==which)   //when the first note is the one we are looking for
+    {
+        delete head;
+        return true;
+    }
+    while(current!=nullptr&&!count)
+    {
+        if(current->key==which)
+        {
+            before->next=current->next;
+            count++;       //since occurance==1, this count variable is unnecessary
+            if(tail==current)
+            {
+                tail=before;
+            }
+            delete current;
+            return true;   
+        }
+        current=current->next;
+        before=before->next;
+    }
+    return false;
+}
+
+template<typename key,typename info>
+bool sequence<key,info>::search(const key& what,int occurance=1)
+{
+    node *current;
+    current=head;
+    while(current!=nullptr)
+    {
+        if(current->key==what)
+        {
+            return true;
+        }
+        current=current->next;
+    }
+    return false;
+}
+
+
+
