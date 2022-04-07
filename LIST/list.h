@@ -1,50 +1,84 @@
 #include <iostream>
+#include<stdio.h>
 using namespace std;
 
 template<typename key, typename info>
 class sequence
 {
-    struct nodef
+    class node
     {
         key k;
         info i;
         node *next;
+    public:
+        node(const key& kk, const info& ii, node* nex);
+        node();
+        ~node();
+        key get_key()
+        {
+            return k;
+        }
+        info get_info()
+        {
+            return i;
+        }
     };
     node *head;
     node *tail;
+    //int size;
     public:
     sequence();
     ~sequence();
-    void destroyList();
-//function to implement deconstuctor
-    void copyList(const sequence<key,info>& otherList);
-    sequence(const sequence<key,info>&);
-    info getElement(const key& k,int occurance=1);
+    void deleteList();  //function to implement deconstuctor
+    sequence copyList(const sequence& otherList);
+    sequence(const sequence& otherList);
+    info getInfo(const key& k,int occurance=1);
+    key getKey(const info& i,int occurance=1);
+    info getInfoByIndex(int i);
+    key getKeyByIndex(int j);
+    void pushBack(const key& k,const info& i);
+
     bool insertAfter(const key& k,const info& i,const key& where,int occurance=1);
     bool insertBefore(const key& k,const info& i,const key& where,int occurance=1);
 //insert elements in the middle of list
-    void insertFront(const key&,const info&);
-    void insertBack(const key&,const info&);
+
+    //void insertFront(const key&,const info&);
+    //void insertBack(const key&,const info&);
+//These functions are similar to insertAfter and insertBeofre so im not gonna overwrite it again
+
 //insert elements in the front/back of the linked list
     bool remove(const key& which,int occurance=1);
-    bool search(const key& what, int occurance=1);
+    bool searchKey(const key& what, int occurance=1); //search key element
+    bool searchInfo(const info& what,int occurance=1);
     
-    sequence<key,info>& operator=(const sequence<key, info>&);
-    sequence<key,info>& operator+(const sequence<key, info>&) const;
-    sequence<key,info>& operator+=(const sequence<key, info>&) const;
+    sequence& operator+=(const sequence&);
+    bool operator==(const sequence<key,info>& otherList);
 //operators implement
-    void print();
-    bool swap(sequence<key,info>& otherList);
+    bool isEmpty();
+    int size();
+    bool swap(sequence&  otherList);
 
-    const sequence<key,info> shuffle(const sequence<key,info> &s1,int len1,const sequence<key,info> &s2,int len2,int repeat);
-    
+    friend ostream& operator<<(ostream& os, const sequence<key,info>& s1);    
 };
 
+template<typename key,typename info>
+sequence<key,info>::node::node(const key& kk, const info& ii, node* nex)
+{
+    k=kk;
+    i=ii;
+    next=nex;
+}
 
 template<typename key,typename info>
-const sequence<key,info> shuffle(const sequence<key,info> &s1,int len1,const sequence<key,info> &s2,int len2,int repeat)
+sequence<key,info>::node::~node()
 {
+    delete this;
+}
 
+template<typename key,typename info>
+bool sequence<key,info>::isEmpty()
+{
+    return (head==nullptr);
 }
 
 template<typename key,typename info>
@@ -55,50 +89,57 @@ sequence<key,info>::sequence()
 }
 
 template<typename key,typename info>
-void sequence<key,info>::destoryList()
+void sequence<key,info>::pushBack(const key& kk, const info& ii)
 {
-    node* current;
-    current=head;
-    while(head!=null)
+    if(isEmpty())
     {
-        delete current;
-        current=current->next;
-    }
-    last=nullptr;
-}
-
-template<typename key,typename info>
-sequence<key,info>::copyList(const sequence<key,info>& otherList)
-{
-    node *current; //pointer to traverse the list
-    node *newNode; //pointer to create a node
-    if(this.head!=nullptr)
-    {
-        destroy(this);
-    }
-    if(otherList.head==nullptr)
-    {
-        this.head=nullptr;
-        this.tail=nullptr;
+        node *newNode1=new node(kk,ii,nullptr);
+        tail=head=newNode1;
     }
     else
     {
-        current=otherList.head;
-        this.head=otherList.head;
-        this.head->info=otherList.head->info;
-        this.head->key=otherList.head->key;
-        this.head->next=nullptr;
-        this.tail=this.head;
+        node *newNode2=new node(kk,ii,nullptr);
+        tail->next=newNode2;
+        tail=tail->next;
+    }
+}
+
+template<typename key,typename info>
+void sequence<key,info>::deleteList()
+{
+    node* current;
+    current=head;
+    while(head!=nullptr)
+    {
+        current->~node();
         current=current->next;
+    }
+    tail=nullptr;
+}
+
+template<typename key,typename info>
+sequence<key,info> sequence<key,info>::copyList(const sequence<key,info>& otherList)
+{
+    if(!this->isEmpty())
+    {
+        deleteList();
+    }
+    if(otherList.isEmpty())
+    {
+        this->head=nullptr;
+        this->tail=nullptr;
+        return *this;
+    }
+    else
+    {
+        node *current=otherList.head;
         while(current!=nullptr)
         {
-            newNode=new node;
-            newNode->info=otherlist->info;
-            newNode->key=otherList->key;
-            newNode->next=nullptr;
-            this.last->next=newNode;
+            node *newNode=new node(current->i,current->k,nullptr);
+            this->pushBack(newNode);
             current=current->next;
         }
+        return *this;
     }
 }
 template<typename key,typename info>
@@ -110,74 +151,115 @@ sequence<key,info>::sequence(const sequence<key,info>& otherList)
 template<typename key,typename info>
 sequence<key,info>::~sequence()
 {
-    destroyList();
+    deleteList();
 }
 
 template<typename key,typename info>
-info getElement(const key& k,int occurance=1)
+key sequence<key,info>::getKey(const info& i,int occurance)
 {
     node *current=head;
-    while(current!=null)
+    while(current!=nullptr)
     {
-        if(curent->key==k)
+        if(current->i==i)
         {
-            return current->info;
+            current->get_key();
         }
         current=current->next;
     }
-    return 0;//can not find the element
+    return -1;//can not find the element
+}
+
+template<typename key,typename info>
+info sequence<key,info>::getInfo(const key& k,int occurance)
+{
+    node *current=head;
+    while(current!=nullptr)
+    {
+        if(current->k==k)
+        {
+            return current->get_info();
+        }
+        current=current->next;
+    }
+    return -1;//can not find the element
     
 }
 template<typename key,typename info>
-bool sequence<key,info>::insertAfter(const key& k,const info& i,const key& where,int occurance=1){
-        node *current;
-        node *newNode;
-        newNode= new node;
-        newNode->info=i;
-        newNode->key=k;
-        current=head;
-        int occ=0;
+bool sequence<key,info>::insertAfter(const key& k,const info& i,const key& where,int occurance){
+        node *current=head;
+        node *newNode= new node(i,k,nullptr);
+        if(this->isEmpty())
+        {
+            tail=head=newNode;
+            return true;
+        }
         while(current!=nullptr)
         {
-            if(current->key=where)
+            
+            if(current->k==where)
             {
-                occ++;
+                if(current==tail)
+                {
+                    this->pushBack(newNode);
+                    return true;
+                }
+                else
+                {
+                    newNode->next=current->next;
+                    current->next=newNode;
+                    return true;
+                }
             }
-
+            current=current->next;
         }
         return false;
 }
 
 template<typename key,typename info>
-bool sequence<key,info>::insertBefore(const key& k,const info& i,const key& where,int occurance=1)
+bool sequence<key,info>::insertBefore(const key& k,const info& i,const key& where,int occurance)
 {
-    
+    node *current=head;
+    node *newNode=new node(i,k,nullptr);
+    if(this->isEmpty())
+    {
+        tail=head=newNode;
+        return true;
+    }
+    while(current!=nullptr)
+    {
+        if(current->next->k==where)
+        {
+            current->next=newNode;
+            newNode->next=current->next;
+            return true;
+        }
+        current=current->next;
+    }
+    return false;
+
 }
 
 template<typename key,typename info>
-bool sequence<key,info>::remove(const key& which,int occurance=1)
+bool sequence<key,info>::remove(const key& which,int occurance)
 {
-    node *before; //a node just before the current node
-    node *current;
-    int count=0; 
-    before=head;
-    current=head->next;
-    if(head->key==which)   //when the first note is the one we are looking for
+    node *before=head; //a node just before the current node
+    node *current=before->next;
+    if(head->k==which)   //when the first note is the one we are looking for
     {
-        delete head;
+        head->~node();
+        tail=head=nullptr;
         return true;
     }
-    while(current!=nullptr&&!count)
+    while(current!=nullptr)
     {
-        if(current->key==which)
+        if(current->k==which)
         {
             before->next=current->next;
-            count++;       //since occurance==1, this count variable is unnecessary
             if(tail==current)
             {
                 tail=before;
             }
-            delete current;
+            current->~node();
             return true;   
         }
         current=current->next;
@@ -187,13 +269,12 @@ bool sequence<key,info>::remove(const key& which,int occurance=1)
 }
 
 template<typename key,typename info>
-bool sequence<key,info>::search(const key& what,int occurance=1)
+bool sequence<key,info>::searchInfo(const info& what,int occurance)
 {
-    node *current;
-    current=head;
+    node *current=head;
     while(current!=nullptr)
     {
-        if(current->key==what)
+        if(current->i==what)
         {
             return true;
         }
@@ -203,10 +284,162 @@ bool sequence<key,info>::search(const key& what,int occurance=1)
 }
 
 template<typename key,typename info>
-bool sequence<key,info>::swap(const sequence<key,info>& otherList)
+bool sequence<key,info>::searchKey(const key& what,int occurance)
 {
-    sequence<key,info> temp;
-    temp.copyList(otherList);
-    otherList.copyList(this);
+    node *current=head;
+    while(current!=nullptr)
+    {
+        if(current->k==what)
+        {
+            return true;
+        }
+        current=current->next;
+    }
+    return false;
 }
 
+template<typename key,typename info>
+bool sequence<key,info>::swap(sequence<key,info>& otherList)
+{
+    node *tempHead=head;
+    node *tempTail=tail;
+    head=otherList.head;
+    tail=otherList.tail;
+    otherList.head=tempHead;
+    otherList.tail=tempTail;
+    return true;
+}
+
+template<typename key,typename info>
+ostream& operator<<(std::ostream& os, const sequence<key,info>& s1)
+{
+    if(s1.isEmpty())
+    {
+        cout<<"It is an empty sequence!"<<endl;
+    }
+    else
+    {
+        for(auto* temp = s1.head; temp != nullptr; temp = temp->next)
+        {
+            os<<"<"<<temp->k<<","<<temp->i<<"> ";
+            temp=temp->temp;
+        }
+    }
+    
+}
+
+template<typename key,typename info>
+bool sequence<key,info>::operator==(const sequence<key,info>& otherList)
+{
+    node *current1=head;
+    node *current2=otherList.head;
+    
+    while(current1!=nullptr&&current2!=nullptr)
+    {
+        if(current1->get_key()!=current2->get_key()||current1->get_info()!=current2->get_info())
+        {
+            return false;
+        }
+        current1=current1->next;
+        current2=current2->next;
+    }
+    return true;
+}
+
+template<typename key,typename info>
+sequence<key,info>& sequence<key,info>::operator+=(const sequence& otherList)
+{
+    for(node* temp = otherList.head; temp != nullptr; temp = temp->m_next)
+        this->push(temp->k, temp->i);
+    return *this;
+}
+
+template<typename key,typename info>
+int sequence<key,info>::size()
+{
+    int len=0;
+    node *current=head;
+    if(this->isEmpty())
+    {
+        return 0;
+    }
+    while(current!=nullptr)
+    {
+        len++;
+        current=current->next;
+    }
+    return len;
+}
+template<typename key,typename info>
+info sequence<key,info>::getInfoByIndex(int i)
+{
+    node *current=head;
+    for(int m=0;m<i;m++)
+    {
+        current=current->next;
+    }
+    return current->i;
+}
+
+template<typename key,typename info>
+key sequence<key,info>::getKeyByIndex(int j)
+{
+    node *current=head;
+    for(int m=0;m<j;m++)
+    {
+        current=current->next;
+    }
+    return current->k;
+}
+
+            //shuffle function!!!
+template<typename key,typename info>
+sequence<key,info> shuffle(const sequence<key,info> &s1,int len1,const sequence<key,info> &s2,int len2,int repeat)
+{
+    int s1Len=s1.size();
+    int s2Len=s2.size();
+    sequence<key,info> resultSeq;
+    key num1,num3;
+    info num2,num4;
+    int index1=0,index2=0;
+    if(len1>s1Len||len2>s2Len||repeat<=0||repeat>s1Len||repeat>s2Len)
+    {
+        cout<<"Invaild value!!"<<endl;
+        return resultSeq;
+        //return an empty sequence
+    }
+    for(int i=0;i<repeat;i++)
+    {
+        for(int j=0;j<len1;j++)
+        {
+            if(s1Len!=0)
+            {
+            resultSeq.pushBack(s1.getKeyByIndex(index1),s1.getInfoByIndex(index1));
+            s1Len--;
+            index1++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        for(int m=0;m<len2;m++)
+        {
+            if(s2Len!=0)
+            {
+            resultSeq.pushBack(s2.getKeyByIndex(index2),s2.getInfoByIndex(index2));
+            s2Len--;
+            index2++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if(s1Len==0&&s2Len==0)
+        {
+            break;
+        }
+    }
+    return resultSeq;
+}
